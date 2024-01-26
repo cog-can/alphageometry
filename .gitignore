@@ -22,3 +22,11 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# Venv/Data Stuff
+bin/*
+lib/*
+lib64/*
+share/*
+ag_ckpt_vocab/*
+lib64
