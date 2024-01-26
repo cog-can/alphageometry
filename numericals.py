@@ -702,6 +702,7 @@ def check_perp(points: list[Point]) -> bool:
 
 def check_cyclic(points: list[Point]) -> bool:
   points = list(set(points))
+  print(points)
   (a, b, c), *ps = points
   circle = Circle(p1=a, p2=b, p3=c)
   for d in ps:
@@ -1213,6 +1214,7 @@ def draw(
     theme: str = 'dark',
 ) -> None:
   """Draw everything on the same canvas."""
+  """Draw everything on the same canvas."""
   plt.close()
   imsize = 512 / 100
   fig, ax = plt.subplots(figsize=(imsize, imsize), dpi=100)
@@ -1234,8 +1236,9 @@ def draw(
     ymin = min([p.num.y for p in points])
     ymax = max([p.num.y for p in points])
     plt.margins((xmax - xmin) * 0.1, (ymax - ymin) * 0.1)
-
-  plt.show(block=block)
+  ### save figure to disk;
+  #plt.show(block=block)
+  plt.savefig(fname = save_to, dpi=300)
 
 
 def close_enough(a: float, b: float, tol: float = 1e-12) -> bool:
