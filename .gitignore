@@ -31,3 +31,4 @@ share/*
 ag_ckpt_vocab/*
 lib64
 *.png
+meliad_lib/
