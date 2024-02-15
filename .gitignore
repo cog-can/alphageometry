@@ -30,3 +30,4 @@ lib64/*
 share/*
 ag_ckpt_vocab/*
 lib64
+*.png

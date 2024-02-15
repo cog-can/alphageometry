@@ -1090,9 +1090,13 @@ def bfs_one_level(
       hash_conclusion = pr.hashed(name, args)
       if hash_conclusion in g.cache:
         continue
-
+      
+      # try:
       add = g.add_piece(name, args, deps=deps)
       added += add
+      # except Exception as e:  # pylint: disable=bare-except
+        # raise e
+        # pass
 
   branching = len(added)
 

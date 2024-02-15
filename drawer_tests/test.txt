@@ -1,0 +1,18 @@
+
+==========================
+ * From theorem premises:
+E F D A C B : Points
+F,D,E are collinear [00]
+F,A,C are collinear [01]
+B,A,E are collinear [02]
+BC ∥ DF [03]
+
+ * Auxiliary Constructions:
+: Points
+
+
+ * Proof steps:
+001. B,A,E are collinear [02] & F,A,C are collinear [01] ⇒  ∠FAE = ∠CAB [04]
+002. F,D,E are collinear [00] & F,A,C are collinear [01] & BC ∥ DF [03] ⇒  ∠AFE = ∠ACB [05]
+003. ∠FAE = ∠CAB [04] & ∠AFE = ∠ACB [05] (Similar Triangles)⇒  ΔAFE is similar to ΔACB
+==========================

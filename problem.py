@@ -59,7 +59,7 @@ class Construction:
     self.args = args
 
   def translate(self, mapping: dict[str, str]) -> Construction:
-    args = [a if isint(a) else mapping[a] for a in self.args]
+    args = [a if (isint(a) or 'pi/' in a) else mapping[a] for a in self.args]
     return Construction(self.name, args)
 
   def txt(self) -> str:
@@ -199,6 +199,7 @@ class Problem:
       clauses.append(clause.translate(mapping))
 
     if self.goal:
+      print("mapping:: ", mapping)
       goal = self.goal.translate(mapping)
     else:
       goal = self.goal

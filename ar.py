@@ -300,6 +300,7 @@ class Table:
     """Add a new equality, represented by the list of tuples vc=[(v, c), ..]."""
     result = {}
     free = []
+    # print('add_expr', vc)
 
     for v, c in vc:
       c = frac(c)

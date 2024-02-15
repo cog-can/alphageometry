@@ -267,6 +267,7 @@ class Node:
 
     return bfs_backtrack(self, others, parent), others
 
+
   def why_val(self, level: int) -> list[Any]:
     return self._val.why_equal([self.val], level)
 
@@ -279,6 +280,8 @@ class Node:
     dep = rep.edge_graph[node][equiv]
     return [dep] + self.why_equal(equiv, level)
 
+  # def __str__(self) -> str:
+  #   return self.name
 
 def why_connect(*pairs: list[tuple[Node, Node]]) -> list[Any]:
   result = []

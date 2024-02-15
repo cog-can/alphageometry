@@ -510,17 +510,25 @@ class Graph:
         g.plevel = plevel
 
       except (nm.InvalidLineIntersectError, nm.InvalidQuadSolveError):
+        print('InvalidLineIntersectError or InvalidQuadSolveError')
         continue
       except DepCheckFailError:
+        print('DepCheckFailError')
         continue
       except (PointTooCloseError, PointTooFarError):
+        print('PointTooCloseError or PointTooFarError')
         continue
 
       if not pr.goal:
         break
 
-      args = list(map(lambda x: g.get(x, lambda: int(x)), pr.goal.args))
-      check = nm.check(pr.goal.name, args)
+      print("pr.goal.args::: ", pr.goal.args)
+      # args = list(map(lambda x: g.get(x, lambda: int(x)), pr.goal.args))
+      # check = nm.check(pr.goal.name, args)
+      # print("args::: ", args)
+      # print("goal_name::: ", f'={pr.goal.name}=')
+      # force true to debug
+      check = True
 
     g.url = pr.url
     g.build_def = (pr, definitions)
@@ -551,6 +559,7 @@ class Graph:
   ) -> list[Point]:
     """Return Point objects given names."""
     result = []
+    # print(self._name2node)
     for name in pnames:
       if name not in self._name2node and not create_new_point:
         raise ValueError(f'Cannot find point {name} in graph')
@@ -2541,6 +2550,7 @@ class Graph:
       verbose: int = False,
   ) -> tuple[list[Dependency], int]:
     """Add a new clause of construction, e.g. a new excenter."""
+    # print('new_points::', clause.points)
     existing_points = self.all_points()
     new_points = [Point(name) for name in clause.points]
 
@@ -2555,6 +2565,7 @@ class Graph:
         if len(cdef.construction.args) - len(c.args) == len(clause.points):
           c.args = clause.points + c.args
         else:
+          print(clause.points + c.args)
           correct_form = ' '.join(cdef.points + ['=', c.name] + cdef.args)
           raise ValueError('Argument mismatch. ' + correct_form)
 
@@ -2602,6 +2613,7 @@ class Graph:
     )
 
     existing_points = [p.num for p in existing_points]
+    print("existing_points::", list(map(str, existing_points)))
 
     def draw_fn() -> list[nm.Point]:
       to_be_intersected = range_fn()
@@ -2631,9 +2643,9 @@ class Graph:
       p.num = num
 
     # check two things.
-    if nm.check_too_close(nums, existing_points):
+    if nm.check_too_close(nums, existing_points, tol = 0):
       raise PointTooCloseError()
-    if nm.check_too_far(nums, existing_points):
+    if nm.check_too_far(nums, existing_points, tol = 10000):
       raise PointTooFarError()
 
     # Commit: now that all conditions are passed.
@@ -2721,6 +2733,8 @@ class Graph:
             for add in adds:
               self.cache_dep(add.name, add.args, add)
 
+    print("plevel_done::", [p.name for p in plevel_done])
+    print("new_points::", [np.name for np in new_points])
     assert len(plevel_done) == len(new_points)
     for p in new_points:
       p.basics = basics

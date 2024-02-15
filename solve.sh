@@ -14,7 +14,7 @@ DDAR_ARGS=(
 
 BATCH_SIZE=2
 BEAM_SIZE=128
-DEPTH=8
+DEPTH=2
 
 SEARCH_ARGS=(
   --beam_size=$BEAM_SIZE
@@ -41,8 +41,8 @@ echo $PYTHONPATH
 
 python -m alphageometry \
 --alsologtostderr \
---problems_file=$(pwd)/imo_ag_30.txt \
---problem_name=translated_imo_2012_p5 \
+--problems_file=$(pwd)/examples.txt \
+--problem_name=square \
 --mode=alphageometry \
 "${DDAR_ARGS[@]}" \
 "${SEARCH_ARGS[@]}" \

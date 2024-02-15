@@ -227,7 +227,8 @@ def run_ddar(g: gh.Graph, p: pr.Problem, out_file: str) -> bool:
       g.type2nodes[gh.Point],
       g.type2nodes[gh.Line],
       g.type2nodes[gh.Circle],
-      g.type2nodes[gh.Segment])
+      g.type2nodes[gh.Segment],
+      save_to="drawer_tests/ag_test.png")
   return True
 
 
