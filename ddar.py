@@ -183,7 +183,7 @@ def solve_all(
     max_level: int = 1000,
     timeout: int = 600,
 ) -> tuple[gh.Graph, list[float], str, list[int], list[pr.Dependency]]:
-  """Alternate between DD and AR until goal is found."""
+  """Alternate between DD and AR until saturation."""
   status = 'saturated'
   level_times = []
 

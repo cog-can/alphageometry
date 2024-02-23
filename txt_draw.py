@@ -7,7 +7,7 @@ import problem as pr
 from pprint import pprint
 import logging
 import pretty as pt
-
+from graph_parse import get_all_rels
 
 def natural_language_statement(logical_statement: pr.Dependency) -> str:
   """Convert logical_statement to natural language.
@@ -137,11 +137,11 @@ def flatten_txt(txt):
 # txt = 'a = free a; b = free b; d = free d; c = on_line a d, on_tline c b b a ? y'
 txt = 'a = free a; b = free b; c = on_tline c b b a; d = on_tline d b c a, on_line a c ? simtri d a b d b c'
 txt = 'a b c d = isquare a b c d; o = on_line a c, on_line b d; e = on_line c d; m = on_line a e, on_line b c; i = on_line o m, on_line b e ? aconst o i i b 1pi/4'
-txt = 'A = free A; C = free C; F = on_line F C A; D = on_dia D C A; B = on_tline B F A C; E = on_line E A F, on_tline E D A C ? para B F E D'
-txt = 'A = free A; C = free C; F = on_line F C A; B = on_dia B C A, on_tline B F A C; D = on_dia D C A; E = on_line E A F, on_tline E D A C ? para B F E D'
-txt = 'A = free A; C = free C; F = on_line F C A; B = on_dia B C A, on_tline B F A C; D = on_dia D C A; E = on_line E A F, on_tline E D A C ? eqangle A F A D D E D C'
-txt = 'F = free F; A = free A; E = free E; C = on_line C A F; H = on_line H A E; B = on_line B A E; D = on_pline D F B C, on_line D F E ? simtri A F E A C B'
-txt = 'E = free E; F = free F; D = on_line D F E; A = free A; C = on_line C A F; H = on_line H A E; B = on_line B A E, on_pline B C D F ? simtri A F E A C B'
+# txt = 'A = free A; C = free C; F = on_line F C A; D = on_dia D C A; B = on_tline B F A C; E = on_line E A F, on_tline E D A C ? para B F E D'
+# txt = 'A = free A; C = free C; F = on_line F C A; B = on_dia B C A, on_tline B F A C; D = on_dia D C A; E = on_line E A F, on_tline E D A C ? para B F E D'
+# txt = 'A = free A; C = free C; F = on_line F C A; B = on_dia B C A, on_tline B F A C; D = on_dia D C A; E = on_line E A F, on_tline E D A C ? eqangle A F A D D E D C'
+# txt = 'F = free F; A = free A; E = free E; C = on_line C A F; H = on_line H A E; B = on_line B A E; D = on_pline D F B C, on_line D F E ? simtri A F E A C B'
+# txt = 'E = free E; F = free F; D = on_line D F E; A = free A; C = on_line C A F; H = on_line H A E; B = on_line B A E, on_pline B C D F ? simtri A F E A C B'
 
 
 print(txt)
@@ -181,4 +181,6 @@ rules = pr.Theorem.from_txt_file('rules.txt', to_dict=True)
 ddar.solve_all(g, rules, p, max_level=1000)
 write_solution(g, p, "drawer_tests/test.txt")
 goal_args = g.names2nodes(p.goal.args)
-print(g.check(p.goal.name, goal_args))
+# print(g.check(p.goal.name, goal_args))
+print("-" * 10)
+get_all_rels(g)

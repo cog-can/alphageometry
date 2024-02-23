@@ -15,6 +15,7 @@
 
 """Numerical representation of geometry."""
 from __future__ import annotations
+import io
 
 import math
 from typing import Any, Optional, Union
@@ -1238,7 +1239,15 @@ def draw(
     plt.margins((xmax - xmin) * 0.1, (ymax - ymin) * 0.1)
   ### save figure to disk;
   #plt.show(block=block)
-  plt.savefig(fname = save_to, dpi=300)
+  # plt.savefig(fname = save_to, dpi=300)
+  # data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+  # data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    
+  img_buf = io.BytesIO()
+  plt.savefig(img_buf, format='png')
+  img_buf.seek(0)
+  # plt.close(fig)
+  return img_buf
 
 
 def close_enough(a: float, b: float, tol: float = 1e-12) -> bool:
