@@ -22,7 +22,7 @@ from typing import Any
 
 import geometry as gm
 import pretty as pt
-
+import logging
 
 # pylint: disable=protected-access
 # pylint: disable=unused-variable
@@ -199,7 +199,6 @@ class Problem:
       clauses.append(clause.translate(mapping))
 
     if self.goal:
-      print("mapping:: ", mapping)
       goal = self.goal.translate(mapping)
     else:
       goal = self.goal
@@ -712,6 +711,9 @@ class Dependency(Construction):
     if self.hashed() in g.cache:
       return g.cache[self.hashed()]
     self.why_me(g, level)
+    logging.info(f"Self {self.name} {[p.name for p in self.args]} at level {level}")
+    for dep in self.why:
+      logging.info(f"why me or cache::: {dep.name} {[p.name for p in dep.args]}")
     return self
 
   def populate(self, name: str, args: list[gm.Point]) -> Dependency:
