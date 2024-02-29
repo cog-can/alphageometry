@@ -19,6 +19,10 @@ RULES = pr.Theorem.from_txt_file('rules.txt', to_dict=True)
 class ConstructionStr(BaseModel):
     txt: str
 
+class WhyQuery(BaseModel):
+    txt: str
+    query: str
+
 app = FastAPI(
     title       = "Alpha Geometry API",
     description = """
@@ -61,8 +65,8 @@ def run_ddar(construction_str: ConstructionStr) -> dict:
     txt = construction_str.txt
     p = pr.Problem.from_txt(txt,translate=False)
     g, _ = gh.Graph.build_problem(p, DEFS)
-    rels_dict = get_all_rels(g)
     ddar.solve_all(g, RULES, p, max_level=1000) # Force saturation
+    rels_dict = get_all_rels(g)
     if p.goal:
         goal_args = g.names2nodes(p.goal.args)
         if g.check(p.goal.name, goal_args):
@@ -91,3 +95,14 @@ def plot_figure(construction_str: ConstructionStr):
 
     # Return the content of the BytesIO buffer as response
     return Response(content=buffer.getvalue(), media_type="image/png")
+
+@app.post("/ask_why")
+def ask_why(why: WhyQuery):
+    txt = why.txt
+    query = why.query
+    p = pr.Problem.from_txt(txt,translate=False)
+    g, _ = gh.Graph.build_problem(p, DEFS)
+    ddar.solve_all(g, RULES, p, max_level=1000) # Force saturation
+
+    solution_str = write_solution(g, pr.Construction.from_txt(query), out_file=None)
+    return {'solution_str': solution_str}
