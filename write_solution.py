@@ -4,6 +4,8 @@ import pretty as pt
 import graph as gh
 import problem as pr
 
+from typing import Union
+
 def natural_language_statement(logical_statement: pr.Dependency) -> str:
   """Convert logical_statement to natural language.
 
@@ -52,16 +54,21 @@ def proof_step_string(
   return f'{premises_nl} \u21d2 {conclusion_nl}'
 
 
-def write_solution(g: gh.Graph, p: pr.Problem, out_file: str) -> None:
+def write_solution(g: gh.Graph, p: Union[pr.Problem, pr.Construction], out_file: str) -> str:
   """Output the solution to out_file.
 
   Args:
     g: gh.Graph object, containing the proof state.
-    p: pr.Problem object, containing the theorem.
+    p: pr.Problem object, containing the theorem. Or a predicate pr.Construction
     out_file: file to write to, empty string to skip writing to file.
   """
+  if isinstance(p, pr.Problem):
+    goal = p.goal
+  else:
+    goal = p
+
   setup, aux, proof_steps, refs = ddar.get_proof_steps(
-      g, p.goal, merge_trivials=False
+      g, goal, merge_trivials=False
   )
 
   solution = '\n=========================='
