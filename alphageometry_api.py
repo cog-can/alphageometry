@@ -23,6 +23,10 @@ class WhyQuery(BaseModel):
     txt: str
     query: str
 
+# Keep a simple cache of proof states for saturated problem defs
+# TODO maybe redis here 
+proof_cache = dict()
+
 app = FastAPI(
     title       = "Alpha Geometry API",
     description = """
@@ -59,23 +63,34 @@ async def redirect():
 def perform_healthcheck():
     return {'healthcheck': 'Everything OK!'}
 
-
 @app.post('/run_ddar', status_code=status.HTTP_200_OK)
 def run_ddar(construction_str: ConstructionStr) -> dict:
     txt = construction_str.txt
     p = pr.Problem.from_txt(txt,translate=False)
-    g, _ = gh.Graph.build_problem(p, DEFS)
-    ddar.solve_all(g, RULES, p, max_level=1000) # Force saturation
+    if txt in proof_cache.keys():
+        g = proof_cache[txt]
+        solution = 'Bactracked From Cache\n==========================\n' 
+    else:
+        g, _ = gh.Graph.build_problem(p, DEFS)
+        ddar.solve_all(g, RULES, p, max_level=1000) # Force saturation
+        solution = ''
+    # Cache the proof state
+    if '?' in txt:
+        premises = txt.split(' ? ')[0]
+    else:
+        premises = txt
+
+    proof_cache[premises] = g
     rels_dict = get_all_rels(g)
     if p.goal:
         goal_args = g.names2nodes(p.goal.args)
         if g.check(p.goal.name, goal_args):
-            solution = write_solution(g, p, "drawer_tests/test.txt")
+            solution += write_solution(g, p, "drawer_tests/test.txt")
             rels_dict["solution"] = solution
         else:
-            rels_dict["solution"] = "False"
+            rels_dict["solution"] = solution + "False"
     else:
-        rels_dict["solution"] = "No Goal"
+        rels_dict["solution"] = solution + "No Goal"
     return rels_dict
 
 @app.post("/plot")
@@ -98,11 +113,18 @@ def plot_figure(construction_str: ConstructionStr):
 
 @app.post("/ask_why")
 def ask_why(why: WhyQuery):
-    txt = why.txt
+    txt = why.txt # Only premises
     query = why.query
-    p = pr.Problem.from_txt(txt,translate=False)
-    g, _ = gh.Graph.build_problem(p, DEFS)
-    ddar.solve_all(g, RULES, p, max_level=1000) # Force saturation
-
-    solution_str = write_solution(g, pr.Construction.from_txt(query), out_file=None)
+    if txt in proof_cache.keys():
+        g = proof_cache[txt]
+        solution_str = (
+            'Bactracked From Cache\n==========================\n' + 
+            write_solution(g, pr.Construction.from_txt(query), out_file=None)
+        )
+    else:
+        p = pr.Problem.from_txt(txt,translate=False)
+        g, _ = gh.Graph.build_problem(p, DEFS)
+        ddar.solve_all(g, RULES, p, max_level=1000) # Force saturation
+        proof_cache[txt] = g
+        solution_str = write_solution(g, pr.Construction.from_txt(query), out_file=None)
     return {'solution_str': solution_str}
