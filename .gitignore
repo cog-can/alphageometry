@@ -33,3 +33,5 @@ lib64
 *.png
 meliad_lib/
 .vscode/
+drawer_tests/
+openapi.json
