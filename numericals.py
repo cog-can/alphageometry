@@ -643,7 +643,6 @@ def check(name: str, args: list[Union[gm.Point, Point]]) -> bool:
 
   fn_name = 'check_' + name
   if fn_name not in globals():
-    print('Globals:', globals())
     return None
 
   fun = globals()['check_' + name]
@@ -704,7 +703,6 @@ def check_perp(points: list[Point]) -> bool:
 
 def check_cyclic(points: list[Point]) -> bool:
   points = list(set(points))
-  print(points)
   a, b, c, *ps = points
   circle = Circle(p1=a, p2=b, p3=c)
   for d in ps:

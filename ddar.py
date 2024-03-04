@@ -102,6 +102,7 @@ def saturate(
     )
     all_added += added
     branching.append(n_branching)
+    print("braching::: ", branching)
 
     derives.append(derv)
     eq4s.append(eq4)
@@ -203,9 +204,7 @@ def solve_all(
     eq4s += eq4
     branches += next_branches
 
-    print("derives", derives)
-    print("eq4s", eq4s)
-    print("branches", branches)
+    print("branches::: ", branches)
 
     if not derives:  # officially saturated.
       break
@@ -223,6 +222,9 @@ def solve_all(
       added += dd.apply_derivations(g, eq4s.pop(0))
 
     all_added += added
+    for dep in all_added:
+      print("added_dep::: ", dep.name, [dep.args[i].name for i in range(len(dep.args))])
+
 
     if not added:  # Nothing left. saturated.
       break

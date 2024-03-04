@@ -2613,7 +2613,6 @@ class Graph:
     )
 
     existing_points = [p.num for p in existing_points]
-    print("existing_points::", list(map(str, existing_points)))
 
     def draw_fn() -> list[nm.Point]:
       to_be_intersected = range_fn()
@@ -2733,8 +2732,6 @@ class Graph:
             for add in adds:
               self.cache_dep(add.name, add.args, add)
 
-    print("plevel_done::", [p.name for p in plevel_done])
-    print("new_points::", [np.name for np in new_points])
     assert len(plevel_done) == len(new_points)
     for p in new_points:
       p.basics = basics
