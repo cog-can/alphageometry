@@ -8,3 +8,5 @@ euler
 a b c = triangle a b c; h = orthocenter a b c; h1 = foot a b c; h2 = foot b c a; h3 = foot c a b; g1 g2 g3 g = centroid g1 g2 g3 g a b c; o = circle a b c ? coll h g o
 square
 a b c d = isquare a b c d; o = on_line a c, on_line b d; e = on_line c d; m = on_line a e, on_line b c; i = on_line o m, on_line b e ? eqangle b a b o b i i o
+mirangu_square
+a b d c = isquare a b d c; f = free f; e = on_tline e f f b, on_circle e f b; g = on_dia g e b, on_circle g e f; h = on_bline h c e, on_line h c e ? aconst h a a g 1pi/4
