@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from collections import defaultdict  # pylint: disable=g-importing-member
 from typing import Callable, Generator, Optional, Type, Union
+import sys
 
 from absl import logging
 import ar
@@ -510,13 +511,14 @@ class Graph:
         g.plevel = plevel
 
       except (nm.InvalidLineIntersectError, nm.InvalidQuadSolveError):
-        print('InvalidLineIntersectError or InvalidQuadSolveError')
+        # print('InvalidLineIntersectError or InvalidQuadSolveError')
         continue
-      except DepCheckFailError:
-        print('DepCheckFailError')
+      except DepCheckFailError as dep_e:
+        # print(f'DepCheckFailError:: {dep_e}')
+        # sys.exit(1)
         continue
       except (PointTooCloseError, PointTooFarError):
-        print('PointTooCloseError or PointTooFarError')
+        # print('PointTooCloseError or PointTooFarError')
         continue
 
       if not pr.goal:
@@ -525,8 +527,6 @@ class Graph:
       print("pr.goal.args::: ", pr.goal.args)
       # args = list(map(lambda x: g.get(x, lambda: int(x)), pr.goal.args))
       # check = nm.check(pr.goal.name, args)
-      # print("args::: ", args)
-      # print("goal_name::: ", f'={pr.goal.name}=')
       # force true to debug
       check = True
 

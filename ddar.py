@@ -117,6 +117,8 @@ def saturate(
     if level_time > timeout:
       break
 
+  added_text = [[add.name] + [arg.name for arg in add.args] for add in all_added]
+  print([' '.join(txt) for txt in added_text])
   return derives, eq4s, branching, all_added
 
 
@@ -222,8 +224,8 @@ def solve_all(
       added += dd.apply_derivations(g, eq4s.pop(0))
 
     all_added += added
-    for dep in all_added:
-      print("added_dep::: ", dep.name, [dep.args[i].name for i in range(len(dep.args))])
+    # for dep in all_added:
+    #   print("added_dep::: ", dep.name, [dep.args[i].name for i in range(len(dep.args))])
 
 
     if not added:  # Nothing left. saturated.
