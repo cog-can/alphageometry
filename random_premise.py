@@ -1,11 +1,12 @@
 from itertools import cycle, islice
 from typing import Tuple
 import random
-import signal
 import logging
+from pprint import pprint
 
 import problem as pr
 import graph as gh
+import ddar
 
 logging.basicConfig(level=logging.INFO)
 
@@ -24,19 +25,6 @@ class CycleWithCounter:
 	
 	def __iter__(self):
 		return self
-
-class TimeoutException(Exception):
-    pass
-
-def handler(signum, frame):
-    raise TimeoutException("Operation timed out")
-
-signal.signal(signal.SIGALRM, handler)
-
-point_names = CycleWithCounter([
-	'A','B','C','D','E','F','G','H','J','K','L','M',  
-	'N','O','P','Q','R','S','T','U','V','W','Y','Z'
-])
 
 constrained2arity = {
 	'perp': 4, 'para': 4, 'cong': 4, 'coll': 3, 'eqangle': 6, 'cyclic': 5 
@@ -155,7 +143,44 @@ def build_primitive(name, arity, cyc, sampled_points):
 		sampled_points.extend(args)
 		return f"{' '.join(args)} = {name} {' '.join(args)}; "
 
-def build_aux(name, arity, point_from: cycle | str, sampled_points) -> Tuple[str | None, str | None]:
+def delete_aux_and_deps(txt, to_delete):
+	print(f"Original {txt}")
+	auxs = txt.split('; ')
+	constructions = dict()
+	for aux in auxs[1:]:
+		point, *preds = aux.split(' = ')
+		preds = [pred.split(', ') for pred in preds][0]
+		for pred in preds:
+			name, *args = pred.split(' ')
+			constructions.setdefault(point, []).append((name, args))
+	
+	# reassamble
+	result = auxs[0] + '; '
+	for point, preds in constructions.items():
+		if point == to_delete:
+			continue
+		pred_strs = []
+		for pred in preds:
+			name, args = pred
+			if to_delete not in args:
+				pred_strs += [f"{name} {' '.join(args)}"]
+
+		if pred_strs:
+			result += f"{point} = " + ', '.join(pred_strs) + '; '
+
+	print(result[:-2])
+
+def build_aux(name, arity, point_from: cycle | str, sampled_points) -> str:
+	'''
+		Build a randomly sampled auxilary construction
+		args:
+			name (str): constrained predicate name
+			arity (int): num of args
+			point_from (cycle | str): point name str or iterable to get point name from
+			sampled_points (list[str]): points this predicate may depend on
+		returns:
+			str: random constructive predicate
+	'''
 	if name == 'cyclic': # Cant generate cyclic yet TODO
 		return None
 
@@ -177,10 +202,12 @@ def build_aux(name, arity, point_from: cycle | str, sampled_points) -> Tuple[str
 	except ValueError:
 		return None
 		
-	constructive_name, constructive_args = translate_constrained_to_constructive(point, name, [point] + dep_args)
+	constructive_name, constructive_args = translate_constrained_to_constructive(
+		point, name, [point] + dep_args
+	)
 	return f"{constructive_name} {' '.join(constructive_args)}"
 
-def generate_random_aux():
+def generate_random_aux(point_names, sampled_points):
 	num_deps = random.randint(1,2)
 	predicate_names = random.choices(
 		list(constrained2weights.keys()),
@@ -196,7 +223,7 @@ def generate_random_aux():
 			point,
 			sampled_points
 		)
-		print('aux_str::: ', aux_str)
+		# print('aux_str::: ', aux_str)
 		
 		if aux_str:
 			predicates.append(aux_str)
@@ -206,34 +233,68 @@ def generate_random_aux():
 		return f"{point} = {', '.join(predicates)}; "
 	else:
 		return None
-
-
-if __name__ == '__main__':
-	defs = pr.Definition.from_txt_file('defs.txt', to_dict=True)
+	
+def generate_random_problem(defs : pr.Definition) -> str:
+	point_names = CycleWithCounter([
+		'A','B','C','D','E','F','G','H','J','K','L','M',  
+		'N','O','P','Q','R','S','T','U','V','W','Y','Z'
+	])
 	construction_str = ''
 	sampled_points = []
 	primitive = random.choices(
 		list(primitives2weights.keys()),
 		list(primitives2weights.values())
 	)[0]
+
 	num_aux = random.randint(4, 20)
 	num_aux = 12
-	construction_str += build_primitive(primitive, primitives2arity[primitive], point_names, sampled_points)
-	for i in range(num_aux):
-		random_construction = generate_random_aux()
+	construction_str += build_primitive(
+		primitive, primitives2arity[primitive], point_names, sampled_points
+	)
+
+	for _ in range(num_aux):
+		random_construction = generate_random_aux(point_names, sampled_points)
 		if not random_construction:
 			continue
 		# Try to build problem
 		try:
 			tmp = construction_str + random_construction
-			print(f"tmp::: {tmp[:-1]}")
-			signal.alarm(2)
 			p = pr.Problem.from_txt(tmp[:-2], translate=False)
-			g, _ = gh.Graph.build_problem(p, defs)
-			signal.alarm(0)
+			_, _ = gh.Graph.build_problem(p, defs, max_tries=10)
 		except:
 			print("Failed to build graph")
 			continue
 		construction_str = tmp
 
-	print(construction_str[:-2])
+	return construction_str[:-2]
+
+
+if __name__ == '__main__':
+	delete_aux_and_deps('A B C D = isquare A B C D; E = eqdistance E D C B, on_line E D A; M = on_aline M B E C B A', 'E')
+
+	defs = pr.Definition.from_txt_file('defs.txt', to_dict=True)
+	rules = pr.Theorem.from_txt_file('rules.txt', to_dict=True)
+	for _ in range(1000):
+		try:
+			txt = generate_random_problem(defs)
+			print(txt)
+			p = pr.Problem.from_txt(txt, translate=False)
+			g, _ = gh.Graph.build_problem(p, defs)
+			g, level_times, status, branches, all_added = ddar.solve_all(
+				g,
+				rules,
+				p,
+				max_level=20,
+				timeout=10
+			)
+		except Exception as e:
+			print(e)
+			continue
+
+		if len(level_times) >= 5 and len(level_times) < 8:
+			with open('candidates_5.txt', 'a') as file:
+				file.write('\n' + txt)
+		if len(level_times) >= 8:
+			with open('candidates_8.txt', 'a') as file:
+				file.write('\n' + txt)
+

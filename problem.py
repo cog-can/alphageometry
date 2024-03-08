@@ -711,9 +711,9 @@ class Dependency(Construction):
     if self.hashed() in g.cache:
       return g.cache[self.hashed()]
     self.why_me(g, level)
-    logging.info(f"Self {self.name} {[p.name for p in self.args]} at level {level}")
-    for dep in self.why:
-      logging.info(f"why me or cache::: {dep.name} {[p.name for p in dep.args]}")
+    # logging.info(f"Self {self.name} {[p.name for p in self.args]} at level {level}")
+    # for dep in self.why:
+    #   logging.info(f"why me or cache::: {dep.name} {[p.name for p in dep.args]}")
     return self
 
   def populate(self, name: str, args: list[gm.Point]) -> Dependency:

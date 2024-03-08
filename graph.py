@@ -490,8 +490,10 @@ class Graph:
       definitions: dict[str, problem.Definition],
       verbose: bool = True,
       init_copy: bool = True,
+      max_tries: int = 1000
   ) -> tuple[Graph, list[Dependency]]:
     """Build a problem into a gr.Graph object."""
+    tries = 0
     check = False
     g = None
     added = None
@@ -500,6 +502,9 @@ class Graph:
       logging.info(pr.txt())
     while not check:
       try:
+        tries += 1
+        if tries > max_tries:
+          break
         g = Graph()
         added = []
         plevel = 0

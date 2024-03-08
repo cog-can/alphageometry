@@ -35,3 +35,5 @@ meliad_lib/
 .vscode/
 drawer_tests/
 openapi.json
+candidates_5.txt
+candidates_8.txt

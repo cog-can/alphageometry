@@ -111,14 +111,17 @@ def saturate(
     logging.info(f'Depth {level}/{max_level} time = {level_time}')  # pylint: disable=logging-fstring-interpolation
     level_times.append(level_time)
 
+    added_text = [[add.name] + [arg.name for arg in add.args] for add in added]
+    print(f"all added dd ONLY conclusions in solve at level {len(level_times)}::: {[' '.join(txt) for txt in added_text]}")
+
     if not added:  # saturated
       break
 
     if level_time > timeout:
       break
 
-  added_text = [[add.name] + [arg.name for arg in add.args] for add in all_added]
-  print([' '.join(txt) for txt in added_text])
+  # added_text = [[add.name] + [arg.name for arg in add.args] for add in all_added]
+  # print([' '.join(txt) for txt in added_text])
   return derives, eq4s, branching, all_added
 
 
@@ -207,6 +210,8 @@ def solve_all(
     branches += next_branches
 
     print("branches::: ", branches)
+    added_text = [[add.name] + [arg.name for arg in add.args] for add in added]
+    print(f"all added dd conclusions in solve at level {len(level_times)}::: {[' '.join(txt) for txt in added_text]}")
 
     if not derives:  # officially saturated.
       break
@@ -216,6 +221,9 @@ def solve_all(
     while derives and not added:
       added += dd.apply_derivations(g, derives.pop(0))
 
+    added_text = [[add.name] + [arg.name for arg in add.args] for add in added]
+    print(f"all added algebra dervs in solve at level {len(level_times)}::: {[' '.join(txt) for txt in added_text]}")
+
     if added:
       continue
 
@@ -223,10 +231,14 @@ def solve_all(
     while eq4s and not added:
       added += dd.apply_derivations(g, eq4s.pop(0))
 
+    added_text = [[add.name] + [arg.name for arg in add.args] for add in added]
+    print(f"all added eq4 dervs in solve at level {len(level_times)}::: {[' '.join(txt) for txt in added_text]}")
+
     all_added += added
     # for dep in all_added:
     #   print("added_dep::: ", dep.name, [dep.args[i].name for i in range(len(dep.args))])
-
+    # added_text = [[add.name] + [arg.name for arg in add.args] for add in all_added]
+    # print(f"all added in solve all level::: {[' '.join(txt) + f' {len(level_times)}' for txt in added_text]}")
 
     if not added:  # Nothing left. saturated.
       break
