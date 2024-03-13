@@ -1212,7 +1212,7 @@ def draw(
     block: bool = True,
     save_to: str = None,
     theme: str = 'dark',
-) -> None:
+) -> io.BytesIO:
   """Draw everything on the same canvas."""
   plt.close()
   imsize = 512 / 100

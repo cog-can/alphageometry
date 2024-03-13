@@ -204,6 +204,8 @@ def solve_all(
         g, theorems, level_times, controller, max_level, timeout=timeout
     )
     all_added += added
+    if added:
+      last_dd_added = added[-1]
 
     derives += dervs
     eq4s += eq4
@@ -243,7 +245,7 @@ def solve_all(
     if not added:  # Nothing left. saturated.
       break
 
-  return g, level_times, status, branches, all_added
+  return g, level_times, status, branches, all_added, last_dd_added
 
 
 def get_proof_steps(

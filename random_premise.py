@@ -3,6 +3,7 @@ from typing import Tuple
 import random
 import logging
 from pprint import pprint
+import re
 
 import problem as pr
 import graph as gh
@@ -138,12 +139,40 @@ def translate_constrained_to_constructive(
 
 	return name, args
 
-def build_primitive(name, arity, cyc, sampled_points):
-		args = list(islice(cyc, arity))
-		sampled_points.extend(args)
-		return f"{' '.join(args)} = {name} {' '.join(args)}; "
 
-def delete_aux_and_deps(txt, to_delete):
+def insert_args_into_format(format_string, Args):
+    arg_mapping = {f'a{i+1}': arg for i, arg in enumerate(Args)}
+    formatted_string = format_string.format(**arg_mapping)
+    
+    return formatted_string
+
+def build_defined_primitive(cyc, sampled_points):
+	primitives = {
+		'k2_9': {
+			'format': (
+				'{a1} {a2} {a3} = triangle {a1} {a2} {a3}; ' +
+			  	'{a4} = midpoint {a4} {a1} {a2}; ' +
+				'{a6} = on_line {a6} {a3} {a4}; ' +
+				'{a7} = on_line {a7} {a2} {a3}, on_pline {a7} {a6} {a1} {a2}; ' + 
+				'{a5} = on_line {a5} {a1} {a2}, on_pline {a5} {a7} {a4} {a3}; '
+			),
+			'arity': 7
+		},
+	}
+
+	primitive = random.choice(list(primitives.keys()))
+	args = list(islice(cyc, primitives[primitive]['arity']))
+	print(f"Args::: {args}")
+	sampled_points.extend(args)
+
+	return insert_args_into_format(primitives[primitive]['format'], args)
+
+def build_primitive(name, arity, cyc, sampled_points):
+	args = list(islice(cyc, arity))
+	sampled_points.extend(args)
+	return f"{' '.join(args)} = {name} {' '.join(args)}; "
+
+def delete_aux_and_deps(txt, to_delete: list[str]):
 	print(f"Original {txt}")
 	auxs = txt.split('; ')
 	constructions = dict()
@@ -157,18 +186,18 @@ def delete_aux_and_deps(txt, to_delete):
 	# reassamble
 	result = auxs[0] + '; '
 	for point, preds in constructions.items():
-		if point == to_delete:
+		if point in to_delete:
 			continue
 		pred_strs = []
 		for pred in preds:
 			name, args = pred
-			if to_delete not in args:
+			if not set(to_delete).intersection(set(args)):
 				pred_strs += [f"{name} {' '.join(args)}"]
 
 		if pred_strs:
 			result += f"{point} = " + ', '.join(pred_strs) + '; '
 
-	print(result[:-2])
+	return result[:-2]
 
 def build_aux(name, arity, point_from: cycle | str, sampled_points) -> str:
 	'''
@@ -248,9 +277,10 @@ def generate_random_problem(defs : pr.Definition) -> str:
 
 	num_aux = random.randint(4, 20)
 	num_aux = 12
-	construction_str += build_primitive(
-		primitive, primitives2arity[primitive], point_names, sampled_points
-	)
+	# construction_str += build_primitive(
+	# 	primitive, primitives2arity[primitive], point_names, sampled_points
+	# )
+	construction_str += build_defined_primitive(point_names, sampled_points)
 
 	for _ in range(num_aux):
 		random_construction = generate_random_aux(point_names, sampled_points)
@@ -270,8 +300,6 @@ def generate_random_problem(defs : pr.Definition) -> str:
 
 
 if __name__ == '__main__':
-	delete_aux_and_deps('A B C D = isquare A B C D; E = eqdistance E D C B, on_line E D A; M = on_aline M B E C B A', 'E')
-
 	defs = pr.Definition.from_txt_file('defs.txt', to_dict=True)
 	rules = pr.Theorem.from_txt_file('rules.txt', to_dict=True)
 	for _ in range(1000):
@@ -280,7 +308,7 @@ if __name__ == '__main__':
 			print(txt)
 			p = pr.Problem.from_txt(txt, translate=False)
 			g, _ = gh.Graph.build_problem(p, defs)
-			g, level_times, status, branches, all_added = ddar.solve_all(
+			g, level_times, status, branches, all_added, last_dd_added = ddar.solve_all(
 				g,
 				rules,
 				p,
@@ -291,10 +319,37 @@ if __name__ == '__main__':
 			print(e)
 			continue
 
-		if len(level_times) >= 5 and len(level_times) < 8:
-			with open('candidates_5.txt', 'a') as file:
-				file.write('\n' + txt)
-		if len(level_times) >= 8:
-			with open('candidates_8.txt', 'a') as file:
-				file.write('\n' + txt)
+		goal_argnames = []
+		for arg in last_dd_added.args:
+			goal_argnames.append(arg.name)
+			
+		goal = pr.Construction.from_txt(f"{last_dd_added.name} {' '.join(goal_argnames)}")
+		setup, aux, proof_steps, refs = ddar.get_proof_steps(
+			g, goal, merge_trivials=False
+		)
 
+		point_names = []
+		for premises, [points] in (setup + aux):
+			point_names.extend([p.name for p in points])
+
+		all_points = [p.name for p in g.all_points()]
+		to_delete = set(all_points) - set(point_names)
+		simple_txt = delete_aux_and_deps(txt, to_delete)
+
+		print(f'+++++++++ SIMPLE TXT +++++++++\n{simple_txt}')
+
+		if len(level_times) >= 5 and len(level_times) < 8:
+			with open('candidates_5.tsv', 'a') as file:
+				# file.write('\n' + txt)
+				file.write(f"{str(len(level_times))}\t" + 
+			    		   f"{last_dd_added.name} {' '.join(goal_argnames)}\t" + 
+						   f"{simple_txt}\t" +
+						   f"{txt}\n"
+				)
+		if len(level_times) >= 8:
+			with open('candidates_8.tsv', 'a') as file:
+				file.write(f"{str(len(level_times))}\t" + 
+			    		   f"{last_dd_added.name} {' '.join(goal_argnames)}\t" + 
+						   f"{simple_txt}\t" +
+						   f"{txt}\n"
+				)

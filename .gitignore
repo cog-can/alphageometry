@@ -37,3 +37,6 @@ drawer_tests/
 openapi.json
 candidates_5.txt
 candidates_8.txt
+candidates_8.tsv
+candidates_5.tsv
+random_premise_test.py
