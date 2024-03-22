@@ -103,6 +103,8 @@ def saturate(
     all_added += added
     branching.append(n_branching)
     print("braching::: ", branching)
+    if n_branching > 300:
+      break
 
     derives.append(derv)
     eq4s.append(eq4)
@@ -198,6 +200,7 @@ def solve_all(
   eq4s = [eq4]
   branches = []
   all_added = []
+  last_dd_added = None
 
   while len(level_times) < max_level:
     dervs, eq4, next_branches, added = saturate(
@@ -237,13 +240,11 @@ def solve_all(
     print(f"all added eq4 dervs in solve at level {len(level_times)}::: {[' '.join(txt) for txt in added_text]}")
 
     all_added += added
-    # for dep in all_added:
-    #   print("added_dep::: ", dep.name, [dep.args[i].name for i in range(len(dep.args))])
-    # added_text = [[add.name] + [arg.name for arg in add.args] for add in all_added]
-    # print(f"all added in solve all level::: {[' '.join(txt) + f' {len(level_times)}' for txt in added_text]}")
 
     if not added:  # Nothing left. saturated.
       break
+    else:
+      last_dd_added = added[-1]
 
   return g, level_times, status, branches, all_added, last_dd_added
 

@@ -53,6 +53,40 @@ def proof_step_string(
 
   return f'{premises_nl} \u21d2 {conclusion_nl}'
 
+def get_proof_dict(g: gh.Graph, p: Union[pr.Problem, pr.Construction], get_setup=False):
+  if isinstance(p, pr.Problem):
+    goal = p.goal
+  else:
+    goal = p
+
+  setup, aux, proof_steps, refs = ddar.get_proof_steps(
+      g, goal, merge_trivials=False
+  )
+
+  proof_dict = {}
+  proof_dict['preds'] = {}
+  proof_dict['solution_steps'] = []
+  if get_setup:
+    proof_dict['setup'] = setup
+    proof_dict['aux'] = aux
+
+  for step in proof_steps:
+    premises, [con] = step
+    proof_dict['solution_steps'].append({
+      'inputs': [refs[p.hashed()] for p in premises],
+      'outputs': [len(refs)]
+    })
+    refs[con.hashed()] = len(refs)
+      
+  for ref, id in refs.items():
+    pred, *args = ref
+    proof_dict['preds'][f'{id}'] = {
+      'text': pt.pretty_nl(pred, args),
+      'pred': pred,
+      'args': args
+    }
+    
+  return proof_dict
 
 def write_solution(g: gh.Graph, p: Union[pr.Problem, pr.Construction], out_file: str) -> str:
   """Output the solution to out_file.

@@ -1236,10 +1236,9 @@ def draw(
     ymax = max([p.num.y for p in points])
     plt.margins((xmax - xmin) * 0.1, (ymax - ymin) * 0.1)
   ### save figure to disk;
-  #plt.show(block=block)
-  # plt.savefig(fname = save_to, dpi=300)
-  # data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-  # data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+  if save_to:
+    plt.show(block=block)
+    plt.savefig(fname = save_to, dpi=300)
     
   img_buf = io.BytesIO()
   plt.savefig(img_buf, format='png')

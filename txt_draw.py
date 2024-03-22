@@ -34,6 +34,7 @@ def flatten_txt(txt):
 # txt = 'E = free E; F = free F; D = on_line D F E; A = free A; C = on_line C A F; H = on_line H A E; B = on_line B A E, on_pline B C D F ? simtri A F E A C B'
 # txt = 'a = free a; b = free b; c = on_tline c b b a; d = on_tline d b c a, on_line a c ? simtri d a b d b c'
 txt = 'A B C D = isquare A B C D; E = on_aline E B A A B D; F = on_line F A B; H = on_pline H A E B, eqdistance H D C A; J = on_pline J A B H; L = on_circle L D C'
+txt = 'A B C = triangle A B C; D = midpoint D A B; F = on_line F C D; G = on_line G B C, on_pline G F A B; E = on_line E A B, on_pline E G D C; J = on_circle J A F, eqdistance J A E C; K = on_aline K G C D A J; L = on_tline L G F J; M = on_line M E L, eqdistance M B A L; N = on_tline N J E K, on_circle N G B; O = on_line O B E; P = on_pline P G M N; Q = eqdistance Q G O K, on_tline Q P E M; R = on_line R A L, on_aline R B L A D N; S = on_line S J Q, eqdistance S L P K; T = on_line T A C'
 
 print(txt)
 defs = pr.Definition.from_txt_file('defs.txt', to_dict=True)

@@ -12,6 +12,7 @@ from graph_parse import get_all_rels
 import problem as pr
 import graph as gh
 import ddar
+import random_premise as rp
 
 DEFS = pr.Definition.from_txt_file('defs.txt', to_dict=True)
 RULES = pr.Theorem.from_txt_file('rules.txt', to_dict=True)
@@ -24,7 +25,7 @@ class WhyQuery(BaseModel):
     query: str
 
 # Keep a simple cache of proof states for saturated problem defs
-# TODO maybe redis here 
+# TODO 
 proof_cache = dict()
 
 app = FastAPI(
@@ -96,20 +97,47 @@ def run_ddar(construction_str: ConstructionStr) -> dict:
 @app.post("/plot")
 def plot_figure(construction_str: ConstructionStr):
     txt = construction_str.txt
+    print(f"TXT:: {txt}")
     p = pr.Problem.from_txt(txt,translate=False)
     g, _ = gh.Graph.build_problem(p, DEFS)
 
+    all_points = g.type2nodes[gh.Point]
+    all_lines = g.type2nodes[gh.Line]
+    all_circles = g.type2nodes[gh.Circle]
+    all_segments = g.type2nodes[gh.Segment]
+
     buffer = gh.nm.draw(
-      g.type2nodes[gh.Point],
-      g.type2nodes[gh.Line],
-      g.type2nodes[gh.Circle],
-      g.type2nodes[gh.Segment],
+      all_points,
+      all_lines,
+      all_circles,
+      all_segments,
       save_to='drawer_tests/test.png')
     
     buffer.seek(0)
 
+    points = [{'name': p.name, 'coords': (p.num.x, p.num.y)} for p in all_points]
+    lines = []
+    if points:
+        if points[0]['name'].isupper():
+            lines = [l.name.upper() for l in all_lines]
+        else:
+            lines = [l.name for l in all_lines]
+    circles = [c.name for c in all_circles]
+    segments = [s.name for s in all_segments]
+
+    graph_data = {'points': points, 'lines': lines, 'circles': circles, 'segments': segments}
+    print(graph_data)
     # Return the content of the BytesIO buffer as response
-    return Response(content=buffer.getvalue(), media_type="image/png")
+    # return {
+    #     "image_buffer": Response(content=buffer.getvalue(), media_type="image/png"),
+    #     "graph_data": graph_data
+    # }
+    return Response(
+        content=buffer.getvalue(),
+        media_type="image/png",
+        headers={"graph_data": json.dumps(graph_data)}
+    )
+
 
 @app.post("/ask_why")
 def ask_why(why: WhyQuery):
@@ -128,3 +156,51 @@ def ask_why(why: WhyQuery):
         proof_cache[txt] = g
         solution_str = write_solution(g, pr.Construction.from_txt(query), out_file=None)
     return {'solution_str': solution_str}
+
+@app.post("/get_graph")
+def get_graph(construction_str: ConstructionStr):
+    txt = construction_str.txt
+    if txt in proof_cache.keys():
+        g = proof_cache[txt]
+    else:
+        p = pr.Problem.from_txt(txt,translate=False)
+        g, _ = gh.Graph.build_problem(p, DEFS)
+
+    all_points = g.type2nodes[gh.Point]
+    all_lines = g.type2nodes[gh.Line]
+    all_circles = g.type2nodes[gh.Circle]
+    all_segments = g.type2nodes[gh.Segment]
+
+    points = [{'name': p.name, 'coords': (p.num.x, p.num.y)} for p in all_points]
+    lines = []
+    if points:
+        if points[0]['name'].isupper():
+            lines = [l.name.upper() for l in all_lines]
+        else:
+            lines = [l.name for l in all_lines]
+    circles = [c.name for c in all_circles]
+    segments = [s.name for s in all_segments]
+
+    graph_data = {'points': points, 'lines': lines, 'circles': circles, 'segments': segments}
+    return graph_data
+
+@app.get("/try_random_problem")
+def try_random_problem():
+    level, simple_txt, goal, txt, solution, proof_dict = rp.try_random_problem()
+    print(proof_dict)
+    return {
+        'level': level,
+        'txt': simple_txt,
+        'goal': goal,
+        'solution': solution,
+        'proof_dict': proof_dict
+    }
+
+@app.get("/get_random_txt")
+def get_random_txt():
+    return {'txt': 'A B C = triangle A B C; D = midpoint D A B; F = on_line F C D; G = on_line G B C, on_pline G F A B; E = on_line E A B, on_pline E G D C'}
+
+@app.delete("/delete_history")
+def delete_history():
+    global proof_cache
+    proof_cache = dict()
